@@ -109,33 +109,70 @@ class ProductCard extends StatelessWidget {
                       ),
 
                       // Add to cart button
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          Provider.of<CartProvider>(
-                            context,
-                            listen: false,
-                          ).addToCart(product);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${product.name} added to cart'),
-                              duration: const Duration(seconds: 2),
-                            ),
+                      Consumer<CartProvider>(
+                        builder: (context, cart, child) {
+                          final isInCart = cart.items.any(
+                            (item) => item.id == product.id,
                           );
-                        },
 
-                        icon: const Icon(Icons.add_shopping_cart, size: 18),
-                        label: const Text('Add'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.blueAccent,
-                          side: const BorderSide(color: Colors.blueAccent),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
+                          if (!isInCart) {
+                            return OutlinedButton.icon(
+                              onPressed: () {
+                                cart.addToCart(product);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${product.name} added to cart',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.add_shopping_cart,
+                                size: 18,
+                              ),
+                              label: const Text('Add'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.blueAccent,
+                                side: const BorderSide(
+                                  color: Colors.blueAccent,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            );
+                          } else {
+                            final item = cart.items.firstWhere(
+                              (i) => i.id == product.id,
+                            );
+                            return Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  onPressed: () {
+                                    cart.decreaseQuantity(product.id);
+                                  },
+                                ),
+                                Text(
+                                  '${item.quantity}',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () {
+                                    cart.increaseQuantity(product.id);
+                                  },
+                                ),
+                              ],
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),
