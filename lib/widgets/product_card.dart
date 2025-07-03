@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
+import 'package:provider/provider.dart';
+import '../providers/cart_provider.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -109,8 +111,18 @@ class ProductCard extends StatelessWidget {
                       // Add to cart button
                       OutlinedButton.icon(
                         onPressed: () {
-                          // TODO: Add to cart logic
+                          Provider.of<CartProvider>(
+                            context,
+                            listen: false,
+                          ).addToCart(product);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${product.name} added to cart'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
                         },
+
                         icon: const Icon(Icons.add_shopping_cart, size: 18),
                         label: const Text('Add'),
                         style: OutlinedButton.styleFrom(

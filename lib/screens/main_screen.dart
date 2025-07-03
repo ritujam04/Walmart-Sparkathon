@@ -3,7 +3,8 @@ import 'home_screen.dart';
 import 'categories_screen.dart';
 import 'cart_screen.dart';
 import 'profile_screen.dart';
-import 'dart:ui';
+import 'package:provider/provider.dart';
+import '../providers/cart_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -35,30 +36,33 @@ class _MainScreenState extends State<MainScreen> {
       label: 'Categories',
     ),
     BottomNavigationBarItem(
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Icon(Icons.shopping_cart),
-          Positioned(
-            right: -6,
-            top: -6,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-              child: const Text(
-                '3', // 👈 This will be dynamic later
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+      icon: Consumer<CartProvider>(
+        builder: (_, cart, __) => Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(Icons.shopping_cart),
+            if (cart.totalItems > 0)
+              Positioned(
+                right: -6,
+                top: -6,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    cart.totalItems.toString(),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
       label: 'Cart',
     ),
