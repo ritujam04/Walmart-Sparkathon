@@ -13,6 +13,8 @@ class OrderDetailsScreen extends StatefulWidget {
 }
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
+  final TextEditingController pincodeController = TextEditingController();
+
   List<Champion> champions = [];
   Champion? selectedChampion;
   bool isPlacingOrder = false;
@@ -20,12 +22,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    fetchChampions();
+    // fetchChampions();
   }
 
-  Future<void> fetchChampions() async {
+  Future<void> fetchChampions(String pincode) async {
     final response = await http.get(
-      Uri.parse('http://192.168.1.3:8000/champions'),
+      Uri.parse('http://192.168.1.3:8000/champions/nearby/$pincode'),
     );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -33,7 +35,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         champions = (data as List)
             .map((json) => Champion.fromJson(json))
             .toList();
+        selectedChampion = null; // reset on new fetch
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch champions")),
+      );
     }
   }
 
@@ -90,24 +97,73 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Confirm Your Order')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButtonFormField<Champion>(
-              decoration: const InputDecoration(
-                labelText: 'Choose Champion',
-                border: OutlineInputBorder(),
-              ),
-              value: selectedChampion,
-              items: champions
-                  .map(
-                    (champ) =>
-                        DropdownMenuItem(value: champ, child: Text(champ.name)),
-                  )
-                  .toList(),
-              onChanged: (value) => setState(() => selectedChampion = value),
+            const Text(
+              "Enter Your Pincode",
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: pincodeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: "e.g. 411001",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final pin = pincodeController.text.trim();
+                    if (pin.isNotEmpty) fetchChampions(pin);
+                  },
+                  icon: const Icon(Icons.search),
+                  label: const Text("Find"),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+            const Text(
+              "Select Champion",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<Champion>(
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              value: selectedChampion,
+              items: champions.map((champ) {
+                return DropdownMenuItem<Champion>(
+                  value: champ.status ? champ : null,
+                  enabled: champ.status,
+                  child: Row(
+                    children: [
+                      Text(champ.name),
+                      const SizedBox(width: 6),
+                      if (!champ.status)
+                        const Text(
+                          "(Unavailable)",
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (champ) {
+                if (champ != null) {
+                  setState(() => selectedChampion = champ);
+                }
+              },
+            ),
+
             const SizedBox(height: 24),
 
             // Total Info Card
@@ -128,6 +184,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
 
             // Place Order Button
