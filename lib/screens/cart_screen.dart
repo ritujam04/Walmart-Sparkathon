@@ -46,6 +46,25 @@ class CartScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                  icon: const Icon(Icons.shopping_bag),
+                  label: const Text("Place Order"),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/order-details');
+                  },
+                ),
               ],
             ),
     );

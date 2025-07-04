@@ -1,3 +1,5 @@
+import 'package:demoapp/screens/order_confirmation_screen.dart';
+import 'package:demoapp/screens/order_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/auth/login_page.dart';
@@ -28,6 +30,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignupPage(),
         '/main': (context) => const MainScreen(),
+        '/order-details': (context) => const OrderDetailsScreen(),
+        '/order-confirmation': (context) => const OrderConfirmationScreen(),
       },
     );
   }
