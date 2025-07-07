@@ -151,8 +151,13 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'screens/map_screen.dart';
-
-void main() {
+import 'screens/location_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+void main() async{
+  await Supabase.initialize(
+    url: 'https://dcjdlufuwoxtoliwnedy.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjamRsdWZ1d294dG9saXduZWR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA5MjQ2MjAsImV4cCI6MjA2NjUwMDYyMH0.cJg6_pJu0U37APHhtX9lks5h69ZlBdRGbfS3Q5FFzcU',
+  );
   runApp(MyApp());
 }
 
@@ -165,7 +170,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      home: MapScreen(),
+      home: LocationsScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
