@@ -1,7 +1,9 @@
 import 'package:demoapp/constants.dart';
+import 'package:demoapp/providers/order_provider.dart';
 import 'package:demoapp/widgets/order_card.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'dart:convert';
 
 import '../models/order.dart';
@@ -40,23 +42,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    fetchOrders();
+    final userId = 1;
+    Future.microtask(() {
+      Provider.of<OrderProvider>(context, listen: false).fetchOrders(userId);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : orders.isEmpty
-          ? const Center(child: Text('No orders found'))
-          : ListView.builder(
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                return OrderCard(order: orders[index]);
-              },
-            ),
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final orders = orderProvider.orders;
+    final userId = 1;
+
+    return RefreshIndicator(
+      onRefresh: () => orderProvider.fetchOrders(userId), // 🌀 Pull to refresh
+      child: ListView.builder(
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          return OrderCard(order: orders[index]);
+        },
+      ),
     );
   }
 }

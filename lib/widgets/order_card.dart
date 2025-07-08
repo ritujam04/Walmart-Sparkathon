@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../models/order.dart';
-import '../screens/qr_code_screen.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
@@ -33,15 +33,51 @@ class OrderCard extends StatelessWidget {
             ElevatedButton(
               onPressed: isQRReady
                   ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              OrderQRScreen(qrToken: order.qrToken),
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Show this QR to Champion'),
+                          content: SizedBox(
+                            width:
+                                MediaQuery.of(context).size.width *
+                                0.8, // constrain width
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'Scan this QR code to receive your order:',
+                                  ),
+                                  const SizedBox(height: 16),
+                                  QrImageView(
+                                    data: order.qrToken,
+                                    version: QrVersions.auto,
+                                    size: 200.0,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Only valid for your assigned Champion.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
                         ),
                       );
                     }
                   : null,
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: isQRReady ? Colors.green : Colors.grey,
                 shape: RoundedRectangleBorder(

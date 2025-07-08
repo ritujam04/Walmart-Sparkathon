@@ -1,3 +1,4 @@
+import 'package:demoapp/providers/order_provider.dart';
 import 'package:demoapp/screens/order_confirmation_screen.dart';
 import 'package:demoapp/screens/order_details_screen.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,10 @@ import 'providers/cart_provider.dart';
 void main() {
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => CartProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
+      ],
       child: const MyApp(),
     ),
   );
