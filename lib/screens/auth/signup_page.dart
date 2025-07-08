@@ -1,3 +1,4 @@
+import 'package:demoapp/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -29,7 +30,7 @@ class _SignupPageState extends State<SignupPage> {
       return;
     }
 
-    final url = Uri.parse('http://192.168.1.3:8000/signup'); // Adjust IP
+    final url = Uri.parse('$BASE_URL/signup'); // Adjust IP
 
     try {
       final response = await http.post(

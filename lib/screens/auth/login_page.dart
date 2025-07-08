@@ -1,3 +1,4 @@
+import 'package:demoapp/constants.dart';
 import 'package:demoapp/screens/auth/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -49,7 +50,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
     setState(() => _isLoading = true);
 
-    final url = Uri.parse('http://192.168.116.163:8000/login');
+    final url = Uri.parse('$BASE_URL/login');
 
     try {
       final response = await http.post(

@@ -1,3 +1,4 @@
+import 'package:demoapp/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -70,9 +71,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> fetchProducts() async {
     try {
-      final response = await http.get(
-        Uri.parse('http://192.168.116.163:8000/products'),
-      );
+      final response = await http.get(Uri.parse('$BASE_URL/products'));
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
