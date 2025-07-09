@@ -22,4 +22,15 @@ class Product {
       imageUrl: json['image_url'],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'description': description,
+    'price': price,
+    'image_url': imageUrl,
+  };
+
+  static List<Product> fromJsonList(List<dynamic> jsonList) =>
+      jsonList.map((json) => Product.fromJson(json)).toList();
 }

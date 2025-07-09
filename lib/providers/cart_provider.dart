@@ -5,12 +5,12 @@ import '../models/product.dart';
 class CartProvider with ChangeNotifier {
   final List<CartItem> _items = [];
 
-  List<CartItem> get items => _items;
+  List<CartItem> get items => List.unmodifiable(_items);
 
   int get totalItems => _items.fold(0, (sum, item) => sum + item.quantity);
 
   double get totalPrice =>
-      _items.fold(0, (sum, item) => sum + (item.quantity * item.price));
+      _items.fold(0, (sum, item) => sum + (item.price * item.quantity));
 
   void addToCart(Product product) {
     final index = _items.indexWhere((item) => item.id == product.id);
@@ -41,7 +41,7 @@ class CartProvider with ChangeNotifier {
 
   void increaseQuantity(int productId) {
     final index = _items.indexWhere((item) => item.id == productId);
-    if (index >= 0) {
+    if (index != -1) {
       _items[index].quantity++;
       notifyListeners();
     }
@@ -49,7 +49,7 @@ class CartProvider with ChangeNotifier {
 
   void decreaseQuantity(int productId) {
     final index = _items.indexWhere((item) => item.id == productId);
-    if (index >= 0) {
+    if (index != -1) {
       if (_items[index].quantity > 1) {
         _items[index].quantity--;
       } else {

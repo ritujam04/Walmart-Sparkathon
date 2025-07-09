@@ -1,7 +1,7 @@
-import 'package:demoapp/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/snackbar_helper.dart';
 import 'login_page.dart';
 
 class SignupPage extends StatefulWidget {
@@ -12,114 +12,125 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
-  bool _isLoading = false;
+  Future<void> _handleSignup() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  Future<void> signupUser() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final phone = _phoneController.text.trim();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.signup(
+      _nameController.text.trim(),
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+      _phoneController.text.trim(),
+    );
 
-    if (email.isEmpty || password.isEmpty || phone.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
-      return;
-    }
-
-    final url = Uri.parse('$BASE_URL/signup'); // Adjust IP
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'phone': phone,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Signup successful! Please login.")),
-        );
-        Navigator.pushReplacementNamed(context, '/main');
-      } else {
-        final error = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Signup failed: ${error['detail']}")),
-        );
-      }
-    } catch (e) {
-      print("Error: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Something went wrong")));
-    } finally {
-      setState(() => _isLoading = false);
+    if (success) {
+      showSnackBar(context, 'Signup successful!', success: true);
+      Navigator.pushReplacementNamed(context, '/main');
+    } else {
+      showSnackBar(context, authProvider.errorMessage ?? 'Signup failed');
+      print(success);
     }
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<AuthProvider>().isLoading;
+
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(title: const Text("Sign Up")),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                // 👇 Full Name Input
+                TextFormField(
+                  controller: _nameController,
+                  validator: (val) =>
+                      val == null || val.isEmpty ? 'Enter your name' : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 20),
+
+                // Email Input
+                TextFormField(
+                  controller: _emailController,
+                  validator: (val) => val == null || !val.contains('@')
+                      ? 'Enter valid email'
+                      : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 20),
+
+                // Password Input
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  validator: (val) => val == null || val.length < 6
+                      ? 'Password must be 6+ characters'
+                      : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: () {
-                        setState(() => _isLoading = true);
-                        signupUser();
-                      },
-                      child: const Text("Sign Up"),
-                    ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
+                const SizedBox(height: 20),
+
+                // Phone Number Input
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  validator: (val) => val == null || val.length < 10
+                      ? 'Enter valid phone number'
+                      : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // Submit Button
+                isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _handleSignup,
+                        child: const Text("Sign Up"),
+                      ),
+
+                // Login Redirect
+                TextButton(
+                  onPressed: () => Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-                child: const Text("Already have an account? Login"),
-              ),
-            ],
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                  ),
+                  child: const Text("Already have an account? Login"),
+                ),
+              ],
+            ),
           ),
         ),
       ),

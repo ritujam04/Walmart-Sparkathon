@@ -1,6 +1,7 @@
+import 'package:demoapp/providers/auth_provider.dart';
 import 'package:demoapp/providers/order_provider.dart';
-import 'package:demoapp/screens/order_confirmation_screen.dart';
-import 'package:demoapp/screens/order_details_screen.dart';
+import 'package:demoapp/screens/order/order_confirmation_screen.dart';
+import 'package:demoapp/screens/order/order_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/auth/login_page.dart';
@@ -12,6 +13,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
       ],

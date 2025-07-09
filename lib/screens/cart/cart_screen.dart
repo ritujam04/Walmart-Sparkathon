@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/cart_provider.dart';
+import '../../providers/cart_provider.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -16,7 +16,7 @@ class CartScreen extends StatelessWidget {
           'Your Cart',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: Colors.indigo,
+        backgroundColor: const Color(0xFF0071CE), // Walmart Blue
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -71,7 +71,7 @@ class CartScreen extends StatelessWidget {
           const SizedBox(height: 32),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.indigo,
+              backgroundColor: const Color(0xFF0071CE),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -90,13 +90,12 @@ class CartScreen extends StatelessWidget {
   Widget _buildCartWithItems(BuildContext context, CartProvider cart) {
     return Column(
       children: [
-        // Cart Items Header
         Container(
           padding: const EdgeInsets.all(16),
           color: Colors.white,
           child: Row(
             children: [
-              Icon(Icons.shopping_cart, color: Colors.indigo),
+              const Icon(Icons.shopping_cart, color: Color(0xFF0071CE)),
               const SizedBox(width: 8),
               Text(
                 '${cart.items.length} ${cart.items.length == 1 ? 'item' : 'items'} in your cart',
@@ -108,8 +107,6 @@ class CartScreen extends StatelessWidget {
             ],
           ),
         ),
-
-        // Cart Items List
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -120,8 +117,6 @@ class CartScreen extends StatelessWidget {
             },
           ),
         ),
-
-        // Cart Summary
         _buildCartSummary(context, cart),
       ],
     );
@@ -141,32 +136,23 @@ class CartScreen extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Product Image
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Container(
                 width: 80,
                 height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                color: Colors.grey[100],
                 child: item.imageUrl != null
                     ? Image.network(
                         item.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.image,
-                          color: Colors.grey[400],
-                          size: 40,
-                        ),
+                        errorBuilder: (_, __, ___) =>
+                            Icon(Icons.image, color: Colors.grey[400]),
                       )
-                    : Icon(Icons.image, color: Colors.grey[400], size: 40),
+                    : Icon(Icons.image, color: Colors.grey[400]),
               ),
             ),
             const SizedBox(width: 12),
-
-            // Product Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,17 +163,13 @@ class CartScreen extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '₹${item.price.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: TextStyle(color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
-
-                  // Quantity Controls
                   Row(
                     children: [
                       _buildQuantityButton(
@@ -195,16 +177,8 @@ class CartScreen extends StatelessWidget {
                         onPressed: () => cart.decreaseQuantity(item.id),
                         isEnabled: item.quantity > 1,
                       ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 12),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(6),
-                        ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           item.quantity.toString(),
                           style: const TextStyle(
@@ -223,8 +197,6 @@ class CartScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Item Total and Delete
             Column(
               children: [
                 IconButton(
@@ -232,13 +204,11 @@ class CartScreen extends StatelessWidget {
                   color: Colors.red,
                   onPressed: () => _showDeleteDialog(context, cart, item),
                 ),
-                const SizedBox(height: 8),
                 Text(
                   '₹${(item.price * item.quantity).toStringAsFixed(2)}',
                   style: const TextStyle(
-                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.indigo,
+                    color: Color(0xFF0071CE),
                   ),
                 ),
               ],
@@ -256,7 +226,7 @@ class CartScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: isEnabled ? Colors.indigo : Colors.grey[300],
+        color: isEnabled ? const Color(0xFF0071CE) : Colors.grey[300],
         borderRadius: BorderRadius.circular(6),
       ),
       child: InkWell(
@@ -275,121 +245,94 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildCartSummary(BuildContext context, CartProvider cart) {
+    final deliveryFee = cart.totalPrice > 500 ? 0.0 : 20.0;
+    final total = cart.totalPrice + deliveryFee;
+
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
+            color: Colors.black12,
             blurRadius: 10,
-            offset: const Offset(0, -2),
+            offset: Offset(0, -3),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Order Summary
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Subtotal', style: TextStyle(fontSize: 16)),
-                    Text(
-                      '₹${cart.totalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Delivery Fee', style: TextStyle(fontSize: 16)),
-                    Text(
-                      cart.totalPrice > 500 ? 'FREE' : '₹20.00',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: cart.totalPrice > 500
-                            ? Colors.green
-                            : Colors.black,
-                        fontWeight: cart.totalPrice > 500
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Total',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '₹${(cart.totalPrice + (cart.totalPrice > 500 ? 0 : 20)).toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          // Subtotal and Delivery
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Subtotal'),
+              Text('₹${cart.totalPrice.toStringAsFixed(2)}'),
+            ],
           ),
-
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Delivery Fee'),
+              Text(
+                deliveryFee == 0 ? 'FREE' : '₹20.00',
+                style: TextStyle(
+                  color: deliveryFee == 0 ? Colors.green : Colors.black,
+                  fontWeight: deliveryFee == 0
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              Text(
+                '₹${total.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0071CE),
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
-
-          // Place Order Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo,
-                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF0071CE),
+                foregroundColor: Colors.amber,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
               ),
-              icon: const Icon(Icons.shopping_bag_outlined),
-              label: const Text("Place Order"),
+              icon: const Icon(Icons.shopping_bag),
+              label: const Text(
+                'Place Order',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               onPressed: () {
                 Navigator.pushNamed(context, '/order-details');
               },
             ),
           ),
-
-          if (cart.totalPrice <= 500)
+          if (deliveryFee > 0)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 'Add ₹${(500 - cart.totalPrice).toStringAsFixed(2)} more for free delivery!',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ),
         ],
@@ -404,68 +347,48 @@ class CartScreen extends StatelessWidget {
   ) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      builder: (_) => AlertDialog(
+        title: const Text('Remove Item'),
+        content: Text('Remove "${item.name}" from your cart?'),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
           ),
-          title: const Text('Remove Item'),
-          content: Text(
-            'Are you sure you want to remove "${item.name}" from your cart?',
+          ElevatedButton(
+            onPressed: () {
+              cart.removeFromCart(item.id);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Remove'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                cart.removeFromCart(item.id);
-                Navigator.pop(context);
-              },
-              child: const Text('Remove'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 
   void _showClearCartDialog(BuildContext context, CartProvider cart) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      builder: (_) => AlertDialog(
+        title: const Text('Clear Cart'),
+        content: const Text('Remove all items from your cart?'),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
           ),
-          title: const Text('Clear Cart'),
-          content: const Text(
-            'Are you sure you want to remove all items from your cart?',
+          ElevatedButton(
+            onPressed: () {
+              cart.clearCart();
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Clear All'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                cart.clearCart();
-                Navigator.pop(context);
-              },
-              child: const Text('Clear All'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 }

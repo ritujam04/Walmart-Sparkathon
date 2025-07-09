@@ -1,10 +1,14 @@
 import 'package:demoapp/constants.dart';
+import 'package:demoapp/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/cart_provider.dart';
-import '../models/champion.dart';
+import '../../providers/cart_provider.dart';
+import '../../models/champion.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+const Color walmartBlue = Color(0xFF0071CE);
+const Color walmartYellow = Color(0xFFFFB400);
 
 class OrderDetailsScreen extends StatefulWidget {
   const OrderDetailsScreen({super.key});
@@ -22,11 +26,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   bool isPlacingOrder = false;
   bool isLoadingChampions = false;
   bool hasSearched = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -77,9 +76,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     }
 
     setState(() => isPlacingOrder = true);
-
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user == null) {
+      _showErrorSnackBar("User not logged in");
+      return;
+    }
     final orderPayload = {
-      'user_id': 1, // Replace with actual user ID
+      'user_id': user.id,
       'champion_id': selectedChampion!.id,
       'total_amount': cart.totalPrice,
       'order_items': cart.items
@@ -126,29 +129,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  // void _showSuccessSnackBar(String message) {
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text(message),
-  //       backgroundColor: Colors.green,
-  //       behavior: SnackBarBehavior.floating,
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-  //     ),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
         title: const Text(
           'Confirm Your Order',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: Colors.indigo,
+        backgroundColor: walmartBlue,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -163,22 +155,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Order Summary Card
               _buildOrderSummaryCard(cart),
-
               const SizedBox(height: 24),
-
-              // Pincode Section
               _buildPincodeSection(),
-
               const SizedBox(height: 24),
-
-              // Champion Selection Section
               _buildChampionSection(),
-
               const SizedBox(height: 32),
-
-              // Place Order Button
               _buildPlaceOrderButton(),
             ],
           ),
@@ -189,125 +171,49 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Widget _buildOrderSummaryCard(CartProvider cart) {
     return Card(
-      elevation: 4,
+      elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [Colors.indigo.shade50, Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Colors.white,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.indigo.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.shopping_cart,
-                    color: Colors.indigo,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
+                const Icon(Icons.shopping_cart, color: walmartBlue),
+                const SizedBox(width: 10),
                 const Text(
                   'Order Summary',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.indigo,
+                    color: walmartBlue,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
-
-            // Items list
-            ...cart.items
-                .map(
-                  (item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: item.imageUrl != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    item.imageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            const Icon(
-                                              Icons.image,
-                                              color: Colors.grey,
-                                            ),
-                                  ),
-                                )
-                              : const Icon(Icons.image, color: Colors.grey),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.name,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Qty: ${item.quantity}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '₹${(item.price * item.quantity).toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.indigo,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-
-            const Divider(height: 32),
-
-            // Total
+            ...cart.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(child: Text('${item.name} (x${item.quantity})')),
+                    Text('₹${(item.price * item.quantity).toStringAsFixed(2)}'),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Total Amount',
+                  'Total:',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -315,7 +221,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.indigo,
+                    color: walmartBlue,
                   ),
                 ),
               ],
@@ -340,12 +246,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: walmartBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.location_on,
-                    color: Colors.orange,
+                    color: walmartBlue,
                     size: 20,
                   ),
                 ),
@@ -372,7 +278,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(
-                          color: Colors.indigo,
+                          color: walmartBlue,
                           width: 2,
                         ),
                       ),
@@ -410,7 +316,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       : const Icon(Icons.search),
                   label: Text(isLoadingChampions ? 'Searching...' : 'Find'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
+                    backgroundColor: walmartBlue,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -443,14 +349,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: walmartBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
-                    Icons.person,
-                    color: Colors.green,
-                    size: 20,
-                  ),
+                  child: const Icon(Icons.person, color: walmartBlue, size: 20),
                 ),
                 const SizedBox(width: 12),
                 const Text(
@@ -462,49 +364,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             const SizedBox(height: 16),
 
             if (!hasSearched && champions.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.grey[600]),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Please enter your pincode to find available champions',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
+              _infoCard(
+                Icons.info_outline,
+                'Please enter your pincode to find available champions',
+                Colors.grey[600],
               )
             else if (hasSearched && champions.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange[300]!),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning_amber, color: Colors.orange[600]),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'No champions available in your area. Please try a different pincode.',
-                        style: TextStyle(
-                          color: Colors.orange[700],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              _infoCard(
+                Icons.warning_amber,
+                'No champions available in your area. Please try a different pincode.',
+                Colors.orange[800],
               )
             else if (champions.isNotEmpty)
               Column(
@@ -514,6 +383,26 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _infoCard(IconData icon, String message, Color? color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: color?.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color ?? Colors.grey),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(message, style: TextStyle(color: color, fontSize: 14)),
+          ),
+        ],
       ),
     );
   }
@@ -530,10 +419,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.indigo[50] : Colors.white,
+          color: isSelected ? walmartBlue.withOpacity(0.05) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Colors.indigo : Colors.grey[300]!,
+            color: isSelected ? walmartBlue : Colors.grey[300]!,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -590,7 +479,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.indigo,
+                  color: walmartBlue,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.check, color: Colors.white, size: 16),
@@ -621,7 +510,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         ),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 18),
-          backgroundColor: Colors.indigo,
+          backgroundColor: walmartBlue,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

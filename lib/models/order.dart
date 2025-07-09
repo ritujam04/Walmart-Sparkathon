@@ -25,8 +25,16 @@ class Order {
       qrToken: json['qr_token'] ?? '',
     );
   }
-}
 
-// List<Order> ordersFromJson(List<dynamic> jsonList) {
-//   return jsonList.map((json) => Order.fromJson(json)).toList();
-// }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'order_status': orderStatus,
+    'total_amount': totalAmount,
+    'created_at': createdAt,
+    'delivery_address': deliveryAddress,
+    'qr_token': qrToken,
+  };
+
+  static List<Order> fromJsonList(List<dynamic> jsonList) =>
+      jsonList.map((json) => Order.fromJson(json)).toList();
+}

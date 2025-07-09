@@ -1,28 +1,50 @@
-import 'dart:convert';
-import 'package:demoapp/constants.dart';
+import 'package:demoapp/providers/order_services.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../models/order.dart';
 
 class OrderProvider with ChangeNotifier {
   List<Order> _orders = [];
+  bool _isLoading = false;
+  String? error;
 
   List<Order> get orders => _orders;
+  bool get loading => _isLoading;
 
-  Future<void> fetchOrders(int userId) async {
-    final url = Uri.parse('$BASE_URL/orders/user/$userId');
+  Future<void> fetchOrders(int? userId) async {
+    if (userId == null) {
+      error = "User ID is null";
+      notifyListeners();
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
     try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        _orders = data.map((orderJson) => Order.fromJson(orderJson)).toList();
-        notifyListeners();
-      } else {
-        throw Exception('Failed to load orders');
-      }
+      _orders = await OrderService.fetchOrders(userId);
+      error = null;
     } catch (e) {
-      print("Order fetch error: $e");
-      rethrow;
+      error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> refreshOrders(int userId) async {
+    await fetchOrders(userId);
+  }
+
+  void clearOrders() {
+    _orders = [];
+    notifyListeners();
+  }
+
+  Order? getOrderById(int id) {
+    try {
+      return _orders.firstWhere((o) => o.id == id);
+    } catch (_) {
+      return null;
     }
   }
 }

@@ -50,7 +50,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
           CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack),
         );
 
-    // Start animations
     _scaleController.forward();
     Future.delayed(const Duration(milliseconds: 300), () {
       _fadeController.forward();
@@ -71,20 +70,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          "Order Confirmed",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        backgroundColor: Colors.green,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -94,92 +80,60 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Animated Success Icon
                     ScaleTransition(
                       scale: _scaleAnimation,
                       child: Container(
-                        width: 120,
-                        height: 120,
+                        width: 140,
+                        height: 140,
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
+                          color: Colors.green.shade50,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.green.withOpacity(0.3),
-                            width: 2,
-                          ),
                         ),
                         child: const Icon(
-                          Icons.check_circle,
-                          size: 80,
+                          Icons.check_circle_outline,
+                          size: 90,
                           color: Colors.green,
                         ),
                       ),
                     ),
-
-                    const SizedBox(height: 40),
-
-                    // Animated Title
+                    const SizedBox(height: 32),
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: const Text(
                         "Order Confirmed!",
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 26,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: Colors.black87,
                         ),
                         textAlign: TextAlign.center,
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    // Animated Subtitle
+                    const SizedBox(height: 12),
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
-                        "Your order has been successfully placed!",
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w500,
-                        ),
+                        "Thank you! Your order has been placed successfully.",
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                         textAlign: TextAlign.center,
                       ),
                     ),
-
-                    const SizedBox(height: 40),
-
-                    // Order Details Card
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: _buildOrderDetailsCard(),
-                      ),
-                    ),
-
                     const SizedBox(height: 32),
-
-                    // Instructions Card
                     SlideTransition(
                       position: _slideAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: _buildInstructionsCard(),
-                      ),
+                      child: _buildOrderDetailsCard(),
+                    ),
+                    const SizedBox(height: 20),
+                    SlideTransition(
+                      position: _slideAnimation,
+                      child: _buildInstructionsCard(),
                     ),
                   ],
                 ),
               ),
-
-              // Action Buttons
               SlideTransition(
                 position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: _buildActionButtons(context),
-                ),
+                child: _buildActionButtons(context),
               ),
             ],
           ),
@@ -193,94 +147,70 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey[50],
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.receipt_long,
-                  color: Colors.blue,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Order Number",
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "#${_generateOrderNumber()}",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          _buildOrderInfoRow(
+            icon: Icons.receipt_long,
+            iconColor: Colors.blue,
+            bgColor: Colors.blue.shade50,
+            label: "Order Number",
+            value: "#${_generateOrderNumber()}",
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.access_time,
-                  color: Colors.orange,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Estimated Pickup Time",
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getEstimatedTime(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          const SizedBox(height: 16),
+          _buildOrderInfoRow(
+            icon: Icons.access_time,
+            iconColor: Colors.orange,
+            bgColor: Colors.orange.shade50,
+            label: "Estimated Pickup",
+            value: _getEstimatedTime(),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildOrderInfoRow({
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: iconColor, size: 22),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -289,41 +219,41 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(0.05),
+        color: Colors.amber.shade50,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.amber.withOpacity(0.3), width: 1),
+        border: Border.all(color: Colors.amber.shade100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
-              const Icon(Icons.info_outline, color: Colors.amber, size: 24),
-              const SizedBox(width: 12),
-              const Text(
-                "Important Instructions",
+            children: const [
+              Icon(Icons.info_outline, color: Colors.amber, size: 22),
+              SizedBox(width: 10),
+              Text(
+                "Pickup Instructions",
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: Colors.amber,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           _buildInstructionItem(
             Icons.person,
-            "Please collect your order from the assigned champion",
+            "Collect your order from the assigned champion",
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           _buildInstructionItem(
             Icons.phone,
-            "You'll receive a call/SMS when your order is ready",
+            "You will receive a call or SMS once ready",
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           _buildInstructionItem(
             Icons.credit_card,
-            "Payment can be made during pickup",
+            "Pay at pickup if not prepaid",
           ),
         ],
       ),
@@ -334,16 +264,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
-        const SizedBox(width: 12),
+        Icon(icon, size: 18, color: Colors.grey[600]),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[700],
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
           ),
         ),
       ],
@@ -359,12 +285,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               textStyle: const TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -375,18 +301,18 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             },
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               side: const BorderSide(color: Colors.green),
               textStyle: const TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -396,7 +322,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               style: TextStyle(color: Colors.green),
             ),
             onPressed: () {
-              // Navigate to order history
               Navigator.pushNamed(context, '/order-history');
             },
           ),
