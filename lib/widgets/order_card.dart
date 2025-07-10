@@ -1,14 +1,13 @@
-import 'dart:async';
+import 'package:demoapp/screens/qr_screen.dart'; // Add this import
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import '../models/order.dart';
-import '../providers/order_provider.dart';
 
 class OrderCard extends StatefulWidget {
   final Order order;
+  final VoidCallback? onOrderDelivered;
 
-  const OrderCard({Key? key, required this.order}) : super(key: key);
+  const OrderCard({Key? key, required this.order, this.onOrderDelivered})
+    : super(key: key);
 
   @override
   State<OrderCard> createState() => _OrderCardState();
@@ -16,34 +15,11 @@ class OrderCard extends StatefulWidget {
 
 class _OrderCardState extends State<OrderCard> {
   late Order _order;
-  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
-  }
-
-  @override
-  void dispose() {
-    _pollingTimer?.cancel();
-    super.dispose();
-  }
-
-  void _startPolling(int userId) {
-    _pollingTimer = Timer.periodic(Duration(seconds: 3), (timer) async {
-      final provider = Provider.of<OrderProvider>(context, listen: false);
-      await provider.fetchOrders(userId);
-      final updatedOrder = provider.getOrderById(_order.id);
-      if (updatedOrder != null &&
-          updatedOrder.orderStatus == 'successfully delivered') {
-        timer.cancel();
-        Navigator.of(context).pop();
-        setState(() {
-          _order = updatedOrder;
-        });
-      }
-    });
   }
 
   @override
@@ -69,58 +45,16 @@ class _OrderCardState extends State<OrderCard> {
             Text("Address: ${_order.deliveryAddress}"),
             Text("Date: ${_order.createdAt}"),
             const SizedBox(height: 12),
-
             if (isQRReady)
               ElevatedButton(
                 onPressed: () {
-                  final userId = Provider.of<OrderProvider>(
-                    context,
-                    listen: false,
-                  ).orders.firstWhere((o) => o.id == _order.id).id;
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      _startPolling(userId);
-                      return AlertDialog(
-                        title: const Text('Show this QR to Champion'),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'Scan this QR code to receive your order:',
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: 200,
-                                height: 200,
-                                child: QrImageView(
-                                  data: _order.qrToken,
-                                  version: QrVersions.auto,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Only valid for your assigned Champion.',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              _pollingTimer?.cancel();
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Close'),
-                          ),
-                        ],
-                      );
-                    },
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => QRScreen(
+                        order: _order,
+                        onOrderDelivered: widget.onOrderDelivered,
+                      ),
+                    ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
