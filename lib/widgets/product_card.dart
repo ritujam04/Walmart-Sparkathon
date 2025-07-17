@@ -44,6 +44,7 @@ class _ProductCardState extends State<ProductCard>
 
   @override
   Widget build(BuildContext context) {
+    print(widget.product.imageUrl);
     return GestureDetector(
       onTap: _onCardPressed,
       child: ScaleTransition(

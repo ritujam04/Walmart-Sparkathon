@@ -322,7 +322,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               style: TextStyle(color: Colors.green),
             ),
             onPressed: () {
-              Navigator.pushNamed(context, '/order-history');
+              Navigator.pushNamed(context, '/order-details');
             },
           ),
         ),

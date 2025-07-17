@@ -1,6 +1,7 @@
 import 'package:demoapp/constants.dart';
 import 'package:demoapp/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../models/champion.dart';
@@ -33,19 +34,35 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     super.dispose();
   }
 
-  Future<void> fetchChampions(String pincode) async {
+  Future<void> fetchChampionsByAddress(String address) async {
     setState(() {
       isLoadingChampions = true;
       hasSearched = false;
     });
 
     try {
-      final response = await http.get(
-        Uri.parse('$BASE_URL/champions/nearby/$pincode'),
-      );
+      final apiKey = dotenv.env['OPENCAGE_API_KEY'];
+      final url =
+          'https://api.opencagedata.com/geocode/v1/json?q=${Uri.encodeComponent(address)}&key=$apiKey';
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final geoResponse = await http.get(Uri.parse(url));
+      final geoData = json.decode(geoResponse.body);
+
+      if (geoData['results'] == null || geoData['results'].isEmpty) {
+        _showErrorSnackBar("Address not found. Please try again.");
+        return;
+      }
+
+      final lat = geoData['results'][0]['geometry']['lat'];
+      final lng = geoData['results'][0]['geometry']['lng'];
+
+      final championUrl = Uri.parse(
+        '$BASE_URL/champions/nearby?lat=$lat&lng=$lng',
+      );
+      final championResponse = await http.get(championUrl);
+
+      if (championResponse.statusCode == 200) {
+        final data = json.decode(championResponse.body);
         setState(() {
           champions = (data as List)
               .map((json) => Champion.fromJson(json))
@@ -57,7 +74,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         _showErrorSnackBar("Failed to fetch champions");
       }
     } catch (e) {
-      _showErrorSnackBar("Network error. Please check your connection.");
+      _showErrorSnackBar("Something went wrong. Check your internet.");
     } finally {
       setState(() {
         isLoadingChampions = false;
@@ -157,7 +174,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             children: [
               _buildOrderSummaryCard(cart),
               const SizedBox(height: 24),
-              _buildPincodeSection(),
+              _buildAddressSection(),
               const SizedBox(height: 24),
               _buildChampionSection(),
               const SizedBox(height: 32),
@@ -232,7 +249,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  Widget _buildPincodeSection() {
+  final TextEditingController addressController = TextEditingController();
+
+  Widget _buildAddressSection() {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -243,91 +262,52 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: walmartBlue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.location_on,
-                    color: walmartBlue,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
+                Icon(Icons.location_on, color: walmartBlue),
+                const SizedBox(width: 8),
                 const Text(
-                  'Delivery Location',
+                  'Enter Delivery Address',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: pincodeController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: "Enter your pincode (e.g. 411001)",
-                      prefixIcon: const Icon(Icons.pin_drop),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: walmartBlue,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your pincode';
-                      }
-                      if (value.trim().length != 6) {
-                        return 'Please enter a valid 6-digit pincode';
-                      }
-                      return null;
-                    },
-                  ),
+            TextFormField(
+              controller: addressController,
+              decoration: InputDecoration(
+                hintText: "E.g. 123 Main Street, Mumbai",
+                prefixIcon: Icon(Icons.home),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: isLoadingChampions
-                      ? null
-                      : () {
-                          final pin = pincodeController.text.trim();
-                          if (pin.isNotEmpty && pin.length == 6) {
-                            fetchChampions(pin);
-                          }
-                        },
-                  icon: isLoadingChampions
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.search),
-                  label: Text(isLoadingChampions ? 'Searching...' : 'Find'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: walmartBlue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty)
+                  return 'Please enter address';
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: isLoadingChampions
+                  ? CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    )
+                  : Icon(Icons.search),
+              label: Text(
+                isLoadingChampions ? 'Searching...' : 'Find Champions',
+              ),
+              onPressed: () {
+                final addr = addressController.text.trim();
+                if (addr.isNotEmpty) fetchChampionsByAddress(addr);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: walmartBlue,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -454,6 +434,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
+                  Text(
+                    champ.address,
+                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                  ),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Icon(
