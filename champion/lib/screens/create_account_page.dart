@@ -49,7 +49,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       return;
     }
 
-    // TODO: Replace with your actual server URL
+    
     final uri = Uri.parse('http://127.0.0.1:8000/create_account');
 
     final payload = {
