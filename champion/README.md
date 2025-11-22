@@ -8,6 +8,7 @@ The Champion App is a Flutter mobile application designed for local delivery age
 
 
 
+
 **What this app does**
 
 
@@ -21,6 +22,7 @@ Posts Champion availability to the backend so customers can be matched to Champi
 
 
 Supports QR-based delivery verification: customers show a unique QR (from their order) and Champions scan it to mark delivery
+
 
 
 
@@ -43,6 +45,7 @@ Supports QR-based delivery verification: customers show a unique QR (from their 
 
 
 
+
 **Folder Structure**
 
 
@@ -62,6 +65,7 @@ lib/
 
 
 └── login\_page.dart
+
 
 
 
@@ -114,6 +118,7 @@ Request example: { "champion\_email": "xyz@example.com", "qr\_payload": "<scanne
 
 
 Response: 200 OK if QR is valid and maps to the pending delivery
+
 
 
 
